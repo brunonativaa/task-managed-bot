@@ -1,10 +1,12 @@
 import logging
 import sqlite3
 import os
+import html
+from turtle import update
 from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from telegram import Update
-from database import buscar_tarefas, deletar_tarefa, concluir_tarefa
+from database import buscar_tarefas,upgrade_db, deletar_tarefa, concluir_tarefa
 
 
 load_dotenv()  # Carrega as variáveis do arquivo .env
@@ -24,20 +26,23 @@ async def list_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text('📝 Sua lista esá vazia!')
         return
     
-    mensagem = "📝 **Suas tarefas:**\n\n"
+    mensagem = "<b>📝 Suas Tasks:</b>\n\n"
     
-    for item in tarefas:
-        t_id, desc, status = item # Desempacotando os valores da tupla
-        icone = "✅" if status == "concluída" else "⏳"
-        
-        if status == 'concluída':
-            mensagem += f"#{t_id} {icone}  _{desc}_\n" # Tarefa concluída com texto riscado
-        else:
-            mensagem += f"#{t_id} {icone}  *{desc}*\n"  # Tarefa pendente com texto em negrito
-    
-    mensagem += "\nUse /check [número] para marcar como concluída. Ex: /check 2"
+    for t_id, desc, status, category, priority in tarefas:
+        stars = "⭐" * priority # Cria uma string de estrelas baseada na prioridade
+        icone = "✅" if status == "concluded" else "⏳"
 
-    await update.message.reply_text(mensagem, parse_mode='Markdown')
+        descricao_limpa = html.escape(desc) # Escapa caracteres especiais para evitar problemas de formatação
+        category_limpa = html.escape(category) # Escapa caracteres especiais para a categoria    
+        if status == 'concluded':
+            mensagem += f"{t_id} {icone}  <i>{descricao_limpa}</i>\n" # Tarefa concluída com texto riscado
+            mensagem += f"📂<i>{category_limpa}</i> | {stars}\n\n"
+        else:
+            mensagem += f"<b>{t_id} {icone}  *{descricao_limpa}*</b>\n"  # Tarefa pendente com texto em negrito
+            mensagem += f"📂<i>{category_limpa}</i> | {stars}\n\n"
+
+    mensagem += "\nUse /check [número] para marcar como concluída. Ex: /check 2"
+    await update.message.reply_text(mensagem, parse_mode='HTML')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.effective_user.first_name
@@ -47,28 +52,61 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # 1. Pega o que você digitou depois do /add
-    # context.args transforma o texto em uma lista, o join junta tudo de novo
-    tarefa = " ".join(context.args)
+    
+    user_input = " ".join(context.args) # Junta os argumentos em uma string única
     user_id = update.effective_user.id
 
     # 2. Verifica se você digitou algo
-    if not tarefa:
-        await update.message.reply_text("❌ Erro: Digite algo após o comando. Ex: /add Estudar SQL")
+    if not user_input:
+        await update.message.reply_text("❌ Erro: Digite algo após o comando. Ex: /add Nome da Tarefa | Categoria | Prioridade (1-3) | YYYY-MM-DD") 
         return
 
-    # 3. Salva no banco de dados
+
+    # 3. Logica de Divisão (split) para separar descrição, categoria e prioridade
+    partes = user_input.split("|")
+
+    tarefa = partes[0].strip() # A descrição é a primeira parte, removendo espaços extras
+    categoria = partes[1].strip() if len(partes) > 1 else "Geral" # Categoria é a segunda parte ou "Geral" se não for fornecida
+    prioridade = partes[2].strip() if len(partes) > 2 else "1" # Prioridade é a terceira parte ou "1" se não for fornecida
+    deadline = partes[3].strip() if len(partes) > 3 else None # Deadline é a quarta parte ou None se não for fornecida
+   
     try:
-        with sqlite3.connect('task.db') as conn: # Conecta ao banco de dados
+        prioridade = int(prioridade) # Tenta converter a prioridade para inteiro
+
+    except ValueError:
+        prioridade = 1 # Se a conversão falhar, define prioridade como 1
+    
+    # 4. Salva a tarefa no banco de dados agora com categoria e prioridade
+
+    try:
+        with sqlite3.connect('task.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO task (user_id, description) VALUES (?, ?)', (user_id, tarefa))
+
+            cursor.execute("""
+                INSERT INTO task (user_id, description, category, priority, deadline) VALUES (?, ?, ?, ?, ?)
+            """, (user_id, tarefa, categoria, prioridade, deadline))
             conn.commit()
 
-        # 4. Responde para você no Telegram
-        await update.message.reply_text(f"✅ Salvei na sua lista: {tarefa}")
-    
+            prazo_str = deadline if deadline else "No deadline set"
+
+        # 5 Resposta pensonalizada (English practice)
+
+        desc_limpa = html.escape(tarefa)
+        cat_limpa = html.escape(categoria)
+        prazo_limpo = html.escape(prazo_str)
+
+        stars = "⭐" * prioridade # Cria uma string de estrelas baseada na prioridade
+        
+        texto_final = (
+            f"✅ <b>Task Saved!</b>\n\n"
+            f"📝 <b>Description:</b> {desc_limpa}\n"
+            f"📂 <b>Category:</b> {cat_limpa}\n"
+            f"🔥 <b>Priority:</b> {stars}\n"
+            f"⏰ <b>Deadline:</b> {prazo_limpo}"
+        )
+        await update.message.reply_text(texto_final, parse_mode='HTML')
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Erro ao acessar o banco: {e}")
+        await update.message.reply_text(f"⚠️ Database Error: {e}")
 
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -80,6 +118,7 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         tarefa_id = int(context.args[0]) # Pega o número da tarefa que você quer concluir
 
+        
         if concluir_tarefa(tarefa_id, user_id):
             await update.message.reply_text(f"✅ Tarefa {tarefa_id} marcada como concluída!")
         
@@ -93,7 +132,7 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if not context.args:
-        await update.message.reply_text("❌ Erro: /del <id da tarefa>", parse_mode='Markdown')
+        await update.message.reply_text("❌ Erro: /del <id da tarefa>", parse_mode='HTML')
         return
     
     
