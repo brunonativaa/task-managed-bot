@@ -2,7 +2,6 @@ import logging
 import sqlite3
 import os
 import html
-from turtle import update
 from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from telegram import Update

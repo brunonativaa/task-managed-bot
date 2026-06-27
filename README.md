@@ -1,46 +1,51 @@
 # 🤖 Task Manager Bot (Telegram)
 
-Projeto desenvolvido para gerenciar listas de tarefas diretamente pelo Telegram, facilitando a organização diária de forma rápida e acessível.
+A project designed to manage to-do lists directly through Telegram, making daily organization quick and easy.
 
-## Imagens/Gif
+## Images/Gif
 
 ![Interface do Banco de Dados no DBeaver](./img/Screenshot%202026-05-02%20102549.png)
-![Interface do Banco de Dados no DBeaver](./img/Bot-telegram-atualizado5-gif.gif)
 
+## 🚀 What I Learned from This Project
 
-## 🚀 O que eu aprendi neste projeto
+In this project, I focused on integrating backend logic with a user interface via a messaging API. The main takeaways were:
 
-Neste desenvolvimento, foquei em integrar lógica de backend com uma interface de usuário via API de mensagens. Os principais aprendizados foram:
+- **Telegram API Integration:** Configuring and handling messages in real time.
+- **Database Management (SQLite):** Creating tables, inserting, querying, and deleting tasks persistently.
+- **Python Programming Logic:** Use of libraries for automation and bot state management.
+- **Version Control and Security:** Use of environment variables (`.env` files) to protect sensitive tokens and configuration of `.gitignore`.
 
-*   **Integração com API do Telegram:** Configuração e manipulação de mensagens em tempo real.
-*   **Manipulação de Banco de Dados (SQLite):** Criação de tabelas, inserção, consulta e exclusão de tarefas de forma persistente.
-*   **Lógica de Programação em Python:** Uso de bibliotecas para automação e gerenciamento de estados do bot.
-*   **Versionamento e Segurança:** Uso de variáveis de ambiente (arquivos `.env`) para proteger tokens sensíveis e configuração de `.gitignore`.
+## 🛠️ Technologies Used
 
-## 🛠️ Tecnologias Utilizadas
+- **Language:** Python 3.x
+- **Database:** SQLite3
+- **Main Libraries:** `python-telegram-bot`, `python-dotenv`
+- **Tools:** VS Code, Git, and GitHub
 
-*   **Linguagem:** Python 3.x
-*   **Banco de Dados:** SQLite3
-*   **Bibliotecas Principais:** `python-telegram-bot`, `python-dotenv`
-*   **Ferramentas:** VS Code, Git e GitHub
+## 📋 Features
 
-## 📋 Funcionalidades
-
-- [x] Adicionar novas tarefas via comando.
-- [x] Listar tarefas pendentes.
-- [x] Marcar tarefas como concluídas ou removê-las.
-- [ ] *Próximo passo: Sistema de prioridades ou categorias.*
-
-
+- [x] Add new tasks via command.
+- [x] List pending tasks.
+- [x] Mark tasks as completed or remove them.
+- [x] Priority system or categories.\_
 
 ## Desafios Enfrentados
 
-* ** Versionamento e Segurança: Encontrei dificuldades em instalar o python-dotenv com o Poetry pelo fato de eu ter movido este projeto do meu repositório de estudos para um repositório próprio.
+- \*\* Versioning and Security: I had trouble installing python-dotenv with Poetry because I had moved this project from my study repository to a separate repository.
 
-* ** Sintaxe SQL e Organização: Conseguir encontrar e resolver problemas de sintaxe no SQL com mais facilidade já é um bom sinal. Também resolvi enfrentar o desafio de organizar as pastas do projeto com hierarquia; começar com bons costumes é sempre bom.
+- \*\* SQL Syntax and Organization: Being able to find and resolve SQL syntax issues more easily is already a good sign. I also decided to take on the challenge of organizing the project folders into a hierarchy; it’s always good to start with good habits.
 
-## 🔧 Como executar
+## 🔧 How to Run It?
 
-1. Clone o repositório:
+1. Clone the repository:
    ```bash
-   git clone https://github.com/brunonativaa/bot-gerenciado-tarefas.git
+   git clone https://github.com/brunonativaa/task-managed-bot.git
+   ```
+2. Go to your Telegram bot to get your token!
+   The famous BotFather
+
+<br>
+
+## GIF
+
+![Interface do Banco de Dados no DBeaver](./img/Bot-telegram-atualizado5-gif.gif)
